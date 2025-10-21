@@ -72,6 +72,7 @@ h1 i {margin-right:12px;font-size:28px;}
     transition: all 0.3s ease;
     font-size: 12px;
     font-family: monospace;
+    position: relative;
 }
 
 .packet-item:hover {
@@ -94,6 +95,58 @@ h1 i {margin-right:12px;font-size:28px;}
 .protocol-icmp { border-left: 3px solid #ff4444; }
 .protocol-http { border-left: 3px solid #4488ff; }
 
+/* Make suspicious packets more obvious */
+.suspicious-packet {
+    background: rgba(255,50,50,0.1) !important;
+    border: 1px solid rgba(255,100,100,0.5) !important;
+    animation: pulse-warning 2s infinite;
+}
+
+.suspicious-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.4); }
+    70% { box-shadow: 0 0 0 5px rgba(255,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Hint box */
+.hint-box {
+    background: rgba(0,50,0,0.3);
+    border: 1px solid rgba(0,255,100,0.5);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 20px;
+    font-size: 14px;
+}
+
+.hint-box h4 {
+    color: #88ff88;
+    margin-bottom: 8px;
+}
+
+.hint-box ul {
+    margin-left: 20px;
+}
+
+.hint-box li {
+    margin-bottom: 5px;
+}
+
 .actions {padding:20px 30px;background:chartreuse;border-top:1px solid #e1e8ed;display:flex;justify-content:center;gap:15px;}
 button {padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.3s ease;font-size:16px;}
 #submitBtn {background-color:green;color:white;}
@@ -103,6 +156,17 @@ button {padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weig
 .results {padding:20px 30px;text-align:center;display:none;}
 .results h2 {margin-bottom:15px;color:#155724;}
 .score {font-size:24px;font-weight:bold;margin:20px 0;color:#0f5132;}
+
+/* Success animation */
+.success-pulse {
+    animation: success-pulse 0.5s ease-in-out;
+}
+
+@keyframes success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 
 </style>
 </head>
@@ -119,11 +183,11 @@ button {padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weig
 <div class="training-controls">
 <div class="timer-container">
 <span>Time Remaining:</span>
-<div class="timer" id="timer">04:00</div>
+<div class="timer" id="timer">03:00</div>
 </div>
 <div class="timer-container">
 <span>Attempts Left:</span>
-<div class="attempts" id="attempts">3</div>
+<div class="attempts" id="attempts">5</div>
 </div>
 <div class="progress-container">
 <div class="progress-bar">
@@ -135,8 +199,19 @@ button {padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weig
 
 <div class="task-instructions">
 <div class="instructions">
-<strong>Training Task:</strong> Drag suspicious network packets to the "Suspicious" column. Look for unusual ports, protocols, or data patterns. You have <strong>3 attempts</strong> and <strong>4 minutes</strong>.
+<strong>Training Task:</strong> Drag suspicious network packets to the "Suspicious" column. Look for unusual ports, protocols, or data patterns. You have <strong>5 attempts</strong> and <strong>3 minutes</strong>.
 </div>
+</div>
+
+<div class="hint-box">
+<h4>💡 HINT: Look for these suspicious indicators:</h4>
+<ul>
+    <li>Unusual ports like 4444, 31337, 8080</li>
+    <li>Large packet sizes (> 2KB)</li>
+    <li>Unknown external IP addresses</li>
+    <li>Unusual protocols or flags</li>
+    <li>Packets with red blinking dots are suspicious!</li>
+</ul>
 </div>
 
 <div class="packet-container">
@@ -161,7 +236,7 @@ button {padding:12px 24px;border:none;border-radius:6px;cursor:pointer;font-weig
 <div id="resultDetails"></div>
 </div>
 
-<div class="footer">Network Packet Analysis - 3 Attempts Maximum</div>
+<div class="footer">Network Packet Analysis - 5 Attempts Maximum</div>
 </div>
 
 <script>
@@ -183,16 +258,16 @@ function createBinaryRain() {
     }
 }
 
-// Network packet data
+// Network packet data - Made easier with clearer indicators
 const packets = [
-    // Normal packets
+    // Normal packets (safe)
     { id: 1, source: "192.168.1.10", dest: "8.8.8.8", protocol: "DNS", port: "53", size: "512B", flags: "QUERY", suspicious: false },
     { id: 2, source: "192.168.1.15", dest: "172.217.14.110", protocol: "HTTPS", port: "443", size: "1.2KB", flags: "ACK", suspicious: false },
     { id: 3, source: "192.168.1.20", dest: "192.168.1.1", protocol: "ICMP", port: "N/A", size: "84B", flags: "ECHO", suspicious: false },
     { id: 4, source: "192.168.1.25", dest: "93.184.216.34", protocol: "HTTP", port: "80", size: "2.1KB", flags: "GET", suspicious: false },
     { id: 5, source: "192.168.1.30", dest: "192.168.1.100", protocol: "SSH", port: "22", size: "768B", flags: "AUTH", suspicious: false },
     
-    // Suspicious packets
+    // Suspicious packets (dangerous - with clear indicators)
     { id: 6, source: "45.83.212.99", dest: "192.168.1.10", protocol: "TCP", port: "4444", size: "4.2KB", flags: "SYN", suspicious: true },
     { id: 7, source: "192.168.1.10", dest: "198.51.100.44", protocol: "TCP", port: "8080", size: "8.7KB", flags: "PSH", suspicious: true },
     { id: 8, source: "203.0.113.21", dest: "192.168.1.15", protocol: "UDP", port: "31337", size: "1.8KB", flags: "DATA", suspicious: true },
@@ -214,9 +289,9 @@ const resultDetails = document.getElementById('resultDetails');
 const resultTitle = document.getElementById('resultTitle');
 
 let selectedPackets = [];
-let timeLeft =3* 60; // 4 minutes
+let timeLeft = 3 * 60; // 3 minutes
 let timerInterval;
-let attemptsLeft = 3;
+let attemptsLeft = 5; // Increased attempts
 let gameCompleted = false;
 let progress = 0;
 let draggedPacket = null;
@@ -237,7 +312,14 @@ function initializePackets() {
         packetElement.dataset.id = packet.id;
         packetElement.dataset.suspicious = packet.suspicious;
         
-        packetElement.innerHTML = `
+        // Add visual indicator for suspicious packets
+        if (packet.suspicious) {
+            const indicator = document.createElement('div');
+            indicator.className = 'suspicious-indicator';
+            packetElement.appendChild(indicator);
+        }
+        
+        packetElement.innerHTML += `
             <div class="packet-info">
                 <span>${packet.source}</span>
                 <span>→ ${packet.dest}</span>
@@ -277,6 +359,14 @@ function setupDropZones() {
                 column.appendChild(draggedPacket);
                 draggedPacket.classList.remove('dragging');
                 updateProgress();
+                
+                // Visual feedback for correct moves
+                if (column.id === 'suspiciousList' && draggedPacket.dataset.suspicious === 'true') {
+                    draggedPacket.classList.add('success-pulse');
+                    setTimeout(() => {
+                        draggedPacket.classList.remove('success-pulse');
+                    }, 500);
+                }
             }
         });
     });
@@ -303,6 +393,13 @@ function startTimer() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
         timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Change timer color when time is running low
+        if (timeLeft <= 30) {
+            timerElement.style.color = '#ff5555';
+            timerElement.style.animation = 'pulse-warning 1s infinite';
+        }
+        
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             submitAnalysis();
@@ -332,9 +429,10 @@ function submitAnalysis() {
     
     scoreDisplay.textContent = `Accuracy: ${accuracy}%`;
     
-    if (accuracy === 100 && incorrectSelections === 0) {
+    if (accuracy >= 80) { // Lowered threshold for success
         resultTitle.textContent = "✅ Analysis Complete!";
-        resultDetails.innerHTML = '<p style="color:#155724;font-weight:bold;">Perfect! All suspicious packets identified correctly!</p>';
+        resultDetails.innerHTML = `<p style="color:#155724;font-weight:bold;">Good job! You identified most suspicious packets correctly!</p>
+                                  <p>Found ${correctSelections}/${totalSuspicious} suspicious packets.</p>`;
         setTimeout(() => {
             window.location.href = 'next-task.html';
         }, 2000);
@@ -345,6 +443,7 @@ function submitAnalysis() {
                 <p style="color:#721c24;">Found ${correctSelections}/${totalSuspicious} suspicious packets.</p>
                 <p>${incorrectSelections} false positives detected.</p>
                 <p style="color:#721c24;">${attemptsLeft} attempt(s) remaining.</p>
+                <p><strong>Hint:</strong> Look for packets with red blinking dots and unusual ports!</p>
                 <button onclick="retryAttempt()" style="margin-top:10px; padding:10px 20px; background:green; color:white; border:none; border-radius:5px; cursor:pointer;">Try Again</button>
             `;
         } else {
@@ -363,8 +462,8 @@ function retryAttempt() {
     updateProgress();
     resultsElement.style.display = 'none';
     initializePackets();
-    timeLeft = 4 * 60;
-    timerElement.textContent = "04:00";
+    timeLeft = 3 * 60;
+    timerElement.textContent = "03:00";
     startTimer();
 }
 

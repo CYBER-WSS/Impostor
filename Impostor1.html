@@ -5,115 +5,482 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Impostor Panel</title>
 <style>
-  body { background: black; color: lime; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin:0; padding:0; }
-  .panel { background: #111; border: 2px solid lime; padding: 30px; text-align: center; border-radius: 12px; max-width: 1100px; width: 90%; }
-  .timer { text-align: center; margin-top: 20px; font-size: 16px; color: yellow; }
-  .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; text-align: left; }
-  .user-card { background: #0b0b0b; border: 1px solid #2d7; padding: 10px; border-radius: 8px; font-size: 14px; }
-  .username { font-weight: bold; margin-bottom: 6px; }
-  .clue { background: rgba(255,255,255,0.03); border: 1px dashed #7f7; padding: 8px; margin-bottom: 8px; }
-  .input-row { display: flex; gap: 6px; margin-bottom: 6px; }
-  .input-row input { flex:1; padding:6px; border-radius:6px; border:1px solid #2d7; background:#111; color:lime; }
-  .status { font-size:13px; margin-top:4px; }
-  .submit-btn { margin-top: 14px; padding: 12px 24px; font-size: 18px; background: lime; color:black; border:none; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s; }
-  .submit-btn:hover { background: #bfff4d; }
-  .nav-bar { width:100%; text-align:center; margin-bottom:12px; }
-  .nav-bar button { padding: 10px 20px; font-size:16px; background: lime; color:black; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
-  .nav-bar button:hover { background:#bfff4d; }
-  #iframeOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index:999; }
-  #iframeOverlay iframe { width:100%; height:100%; border:none; }
-  #iframeOverlay button { position:absolute; top:10px; right:10px; background:red; color:white; font-size:16px; border:none; padding:8px 12px; cursor:pointer; border-radius:6px; }
+  :root {
+    --primary-color: #00ff00;
+    --primary-dark: #00cc00;
+    --background: #0a0a0a;
+    --card-bg: #111111;
+    --text-color: #e0e0e0;
+    --border-color: #00aa00;
+    --success-color: #00aaff;
+    --warning-color: #ffaa00;
+  }
+  
+  body { 
+    background: var(--background); 
+    color: var(--text-color); 
+    font-family: 'Courier New', monospace; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    margin:0; 
+    padding:20px;
+    line-height: 1.5;
+  }
+  
+  .panel { 
+    background: var(--card-bg); 
+    border: 2px solid var(--primary-color); 
+    padding: 30px; 
+    text-align: center; 
+    border-radius: 12px; 
+    max-width: 1200px; 
+    width: 100%;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+  }
+  
+  h1 {
+    color: var(--primary-color);
+    margin-top: 0;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+  }
+  
+  .instructions {
+    background: rgba(0, 30, 0, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: left;
+    font-size: 15px;
+  }
+  
+  .instructions h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+  }
+  
+  .instructions ul {
+    padding-left: 20px;
+  }
+  
+  .instructions li {
+    margin-bottom: 8px;
+  }
+  
+  .timer { 
+    text-align: center; 
+    margin: 20px 0; 
+    font-size: 24px; 
+    color: var(--warning-color);
+    font-weight: bold;
+    background: rgba(255, 170, 0, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--warning-color);
+  }
+  
+  .users-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+    gap: 15px; 
+    margin-top: 20px; 
+    text-align: left; 
+  }
+  
+  .user-card { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    padding: 15px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    transition: all 0.3s ease;
+  }
+  
+  .user-card:hover {
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .username { 
+    font-weight: bold; 
+    margin-bottom: 8px; 
+    color: var(--primary-color);
+    font-size: 16px;
+  }
+  
+  .clue { 
+    background: rgba(0, 50, 0, 0.2); 
+    border: 1px dashed #2d7; 
+    padding: 10px; 
+    margin-bottom: 10px; 
+    border-radius: 6px;
+    font-style: italic;
+  }
+  
+  .input-row { 
+    display: flex; 
+    flex-direction: column;
+    gap: 6px; 
+    margin-bottom: 6px; 
+  }
+  
+  .input-row input { 
+    padding: 8px; 
+    border-radius: 6px; 
+    border: 1px solid var(--border-color); 
+    background: rgba(0, 20, 0, 0.3); 
+    color: var(--primary-color);
+    font-family: 'Courier New', monospace;
+  }
+  
+  .input-row input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+  }
+  
+  .status { 
+    font-size: 13px; 
+    margin-top: 4px; 
+    min-height: 18px;
+  }
+  
+  .submit-btn { 
+    margin-top: 25px; 
+    padding: 12px 30px; 
+    font-size: 18px; 
+    background: var(--primary-color); 
+    color: black; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    transition: 0.2s; 
+    font-family: 'Courier New', monospace;
+  }
+  
+  .submit-btn:hover { 
+    background: var(--primary-dark); 
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  }
+  
+  .nav-bar { 
+    width:100%; 
+    text-align:center; 
+    margin-bottom:15px; 
+  }
+  
+  .nav-bar button { 
+    padding: 10px 20px; 
+    font-size:16px; 
+    background: var(--primary-color); 
+    color:black; 
+    border:none; 
+    border-radius:6px; 
+    cursor:pointer; 
+    font-weight:bold; 
+    font-family: 'Courier New', monospace;
+    transition: 0.2s;
+  }
+  
+  .nav-bar button:hover { 
+    background: var(--primary-dark);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  }
+  
+  #iframeOverlay { 
+    display:none; 
+    position:fixed; 
+    top:0; 
+    left:0; 
+    width:100%; 
+    height:100%; 
+    background: rgba(0,0,0,0.95); 
+    z-index:999; 
+  }
+  
+  #iframeOverlay iframe { 
+    width:100%; 
+    height:100%; 
+    border:none; 
+  }
+  
+  #iframeOverlay button { 
+    position:absolute; 
+    top:10px; 
+    right:10px; 
+    background:red; 
+    color:white; 
+    font-size:16px; 
+    border:none; 
+    padding:8px 12px; 
+    cursor:pointer; 
+    border-radius:6px; 
+  }
+  
+  .progress-container {
+    width: 100%;
+    background-color: rgba(0, 30, 0, 0.3);
+    border-radius: 8px;
+    margin: 15px 0;
+    height: 20px;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 0%;
+    transition: width 0.5s ease;
+    border-radius: 8px;
+  }
+  
+  .progress-text {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 14px;
+    color: var(--text-color);
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  
+  @media (max-width: 768px) {
+    .users-grid {
+      grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+    }
+    
+    .panel {
+      padding: 20px;
+    }
+  }
 </style>
 </head>
 <body>
 <div class="panel">
-  <div class="timer" id="timer">03:00</div>
-  <div class="nav-bar">
-    <button id="openSiteBtn">Open External Site</button>
+  <h1>IMPOSTOR PANEL</h1>
+  
+  <div class="instructions">
+    <h3>Mission Briefing:</h3>
+    <p>You've infiltrated the system, but you need to bypass security by cracking user passwords. Use the clues provided to determine each user's password.</p>
+    
+    <h3>How to Play:</h3>
+    <ul>
+      <li>Each user card shows a username and a clue about their password</li>
+      <li>Clues can be: <strong>Anagrams</strong> (scrambled letters), <strong>Length</strong> (number of characters), or <strong>Reverse</strong> (password spelled backwards)</li>
+      <li>Enter the correct password for each user in the input field</li>
+      <li>You need to solve at least 70% (9 out of 12) to proceed to the next stage</li>
+      <li>You have <strong>3 minutes</strong> to complete the mission</li>
+      <li><strong>WARNING:</strong> After 3 minutes, you will be automatically redirected regardless of your progress</li>
+    </ul>
+    
+    <h3>Example:</h3>
+    <ul>
+      <li>If the clue is "Anagram: traxmii", the password might be "matrix"</li>
+      <li>If the clue is "Length: 5 characters", the password has exactly 5 letters</li>
+      <li>If the clue is "Reverse: ylpmis", the password is "simple" (spelled backwards)</li>
+    </ul>
   </div>
+  
+  <div class="timer" id="timer">03:00</div>
+  
+  <div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="progress-text" id="progressText">Progress: 0/12 (0%)</div>
+  
+  <div class="nav-bar">
+    <button id="openSiteBtn">Good Luck</button>
+  </div>
+  
   <div class="users-grid" id="usersGrid"></div>
-  <button id="submitBtn" class="submit-btn">Submit All</button>
+  
+  <button id="submitBtn" class="submit-btn">DECRYPT ALL PASSWORDS</button>
 </div>
 
 <div id="iframeOverlay">
-  <button id="closeIframe">Close</button>
+  <button id="closeIframe">Close Database</button>
   <iframe src=""></iframe>
 </div>
 
 <script>
-  // --- Timer 5 min ---
-  const timerEl=document.getElementById('timer');
-  let timeLeft=3*60;
-  setInterval(()=>{
+  // --- Timer 3 min ---
+  const timerEl = document.getElementById('timer');
+  let timeLeft = 3 * 60;
+  
+  // Function to redirect after timeout
+  function redirectAfterTimeout() {
+    // Change this URL to your desired destination
+    window.location.href = 'Impostor 1.5.html';
+  }
+  
+  const timerInterval = setInterval(() => {
     timeLeft--;
-    const m=Math.floor(timeLeft/60), s=timeLeft%60;
-    timerEl.textContent=`${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-  },1000);
+    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    
+    // Change color when time is running out
+    if (timeLeft < 60) {
+      timerEl.style.color = '#ff5555';
+      timerEl.style.animation = 'pulse 1s infinite';
+    }
+    
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert('Time is up! Redirecting to next stage...');
+      redirectAfterTimeout();
+    }
+  }, 1000);
 
   // --- External site iframe ---
-  const iframeOverlay=document.getElementById('iframeOverlay');
-  const iframe=iframeOverlay.querySelector('iframe');
-  document.getElementById('openSiteBtn').onclick=()=>{
+  const iframeOverlay = document.getElementById('iframeOverlay');
+  const iframe = iframeOverlay.querySelector('iframe');
+  document.getElementById('openSiteBtn').onclick = () => {
+    // In a real implementation, this would open an external site
+    // For demo purposes, we'll just show a message
+    alert('External database access would open here in a real implementation');
   };
-  document.getElementById('closeIframe').onclick=()=>{ iframeOverlay.style.display='none'; };
+  document.getElementById('closeIframe').onclick = () => { iframeOverlay.style.display = 'none'; };
 
   // --- Puzzle setup ---
-  const usersGrid=document.getElementById('usersGrid');
-  const adjectives=["cyan","sly","quiet","vivid","crisp","neon"];
-  const nouns=["fox","circuit","brush","byte","ember","gizmo"];
-  const passwords=["alpha","orbit7","matrix","pulse","sunny","shadow","neon5","cipher"];
-  const users=[];
+  const usersGrid = document.getElementById('usersGrid');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  
+  const adjectives = ["cyan", "sly", "quiet", "vivid", "crisp", "neon", "quick", "sharp"];
+  const nouns = ["fox", "circuit", "brush", "byte", "ember", "gizmo", "pixel", "node"];
+  const passwords = ["alpha", "orbit7", "matrix", "pulse", "sunny", "shadow", "neon5", "cipher", "binary", "signal", "vector", "quantum"];
+  const users = [];
 
-  function makeUsername(){return adjectives[Math.floor(Math.random()*adjectives.length)]+"_"+nouns[Math.floor(Math.random()*nouns.length)];}
-  function makeClue(pw){const types=["anagram","length","reverse"];const type=types[Math.floor(Math.random()*types.length)]; if(type==="anagram") return {text:`Anagram: ${pw.split('').sort(()=>Math.random()-0.5).join('')}`}; if(type==="length") return {text:`Length: ${pw.length} characters`}; if(type==="reverse") return {text:`Reverse: ${pw.split('').reverse().join('')}`};}
-
-  for(let i=0;i<12;i++){
-    const u=makeUsername();
-    const pw=passwords[Math.floor(Math.random()*passwords.length)];
-    const clue=makeClue(pw);
-    users.push({u,pw,clue,solved:false});
+  function makeUsername() {
+    return adjectives[Math.floor(Math.random() * adjectives.length)] + "_" + 
+           nouns[Math.floor(Math.random() * nouns.length)];
   }
-
-  function renderGrid(){
-    usersGrid.innerHTML='';
-    users.forEach((usr,i)=>{
-      const card=document.createElement('div');
-      card.className='user-card';
-      card.innerHTML=`
-        <div class="username">${usr.u}</div>
-        <div class="clue">${usr.clue.text}</div>
-        <div class="input-row">
-          <input id="pw${i}" placeholder="password"/>
-          <div class="status" id="st${i}">—</div>
-        </div>
-      `;
-      usersGrid.appendChild(card);
-    });
-  }
-
-  function checkAll(){
-    let correctCount=0;
-    users.forEach((usr,i)=>{
-      const input=document.getElementById(`pw${i}`);
-      const status=document.getElementById(`st${i}`);
-      if(input.value.trim()===usr.pw){
-        usr.solved=true;
-        status.innerHTML='<span style="color:#8ff;font-weight:bold;">Correct</span>';
-        correctCount++;
-      }else{
-        usr.solved=false;
-        status.textContent='Incorrect';
+  
+  function makeClue(pw) {
+    const types = ["anagram", "length", "reverse"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    if (type === "anagram") {
+      // Create a proper anagram by shuffling the letters
+      let anagram = pw.split('');
+      for (let i = anagram.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [anagram[i], anagram[j]] = [anagram[j], anagram[i]];
       }
-    });
-    if(correctCount>=Math.ceil(users.length*0.7)){ // 70% threshold
-      alert(`You got ${correctCount}/12 correct! Proceeding to next stage.`);
-      window.location.href='Impostor 1.5.html';
-    }else{
-      alert(`You got ${correctCount}/12 correct. At least 70% needed.`);
+      return {text: `Anagram: ${anagram.join('')}`, type: "anagram"};
+    }
+    
+    if (type === "length") {
+      return {text: `Length: ${pw.length} characters`, type: "length"};
+    }
+    
+    if (type === "reverse") {
+      return {text: `Reverse: ${pw.split('').reverse().join('')}`, type: "reverse"};
     }
   }
 
-  document.getElementById('submitBtn').addEventListener('click',checkAll);
+  // Create 12 users with unique passwords
+  const usedPasswords = new Set();
+  while (users.length < 12) {
+    const u = makeUsername();
+    const availablePasswords = passwords.filter(p => !usedPasswords.has(p));
+    
+    if (availablePasswords.length === 0) break;
+    
+    const pw = availablePasswords[Math.floor(Math.random() * availablePasswords.length)];
+    usedPasswords.add(pw);
+    
+    const clue = makeClue(pw);
+    users.push({u, pw, clue, solved: false});
+  }
+
+  function updateProgress() {
+    const solvedCount = users.filter(u => u.solved).length;
+    const percentage = Math.round((solvedCount / users.length) * 100);
+    
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `Progress: ${solvedCount}/${users.length} (${percentage}%)`;
+    
+    // Change progress bar color based on completion
+    if (percentage >= 70) {
+      progressBar.style.backgroundColor = '#00aaff';
+    } else if (percentage >= 40) {
+      progressBar.style.backgroundColor = '#ffaa00';
+    } else {
+      progressBar.style.backgroundColor = '#ff5555';
+    }
+  }
+
+  function renderGrid() {
+    usersGrid.innerHTML = '';
+    users.forEach((usr, i) => {
+      const card = document.createElement('div');
+      card.className = 'user-card';
+      card.innerHTML = `
+        <div class="username">${usr.u}</div>
+        <div class="clue">${usr.clue.text}</div>
+        <div class="input-row">
+          <input id="pw${i}" placeholder="Enter password..." value="${usr.solved ? usr.pw : ''}"/>
+          <div class="status" id="st${i}">${usr.solved ? '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>' : '—'}</div>
+        </div>
+      `;
+      
+      // Add event listener for real-time validation
+      const input = card.querySelector(`#pw${i}`);
+      const status = card.querySelector(`#st${i}`);
+      
+      input.addEventListener('input', () => {
+        if (input.value.trim() === usr.pw) {
+          usr.solved = true;
+          status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
+          updateProgress();
+        } else {
+          usr.solved = false;
+          status.textContent = '—';
+          updateProgress();
+        }
+      });
+      
+      usersGrid.appendChild(card);
+    });
+    updateProgress();
+  }
+
+  function checkAll() {
+    let correctCount = 0;
+    users.forEach((usr, i) => {
+      const input = document.getElementById(`pw${i}`);
+      const status = document.getElementById(`st${i}`);
+      
+      if (input.value.trim() === usr.pw) {
+        usr.solved = true;
+        status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
+        correctCount++;
+      } else {
+        usr.solved = false;
+        status.textContent = '✗ Incorrect';
+      }
+    });
+    
+    updateProgress();
+    
+    if (correctCount >= Math.ceil(users.length * 0.7)) {
+      clearInterval(timerInterval);
+      alert(`ACCESS GRANTED! You decrypted ${correctCount}/12 passwords. Proceeding to next stage.`);
+      // In a real implementation, this would redirect to the next stage
+      // window.location.href = 'Impostor 1.5.html';
+    } else {
+      alert(`ACCESS DENIED! You decrypted ${correctCount}/12 passwords. At least 70% (9/12) needed to proceed.`);
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', checkAll);
   renderGrid();
 </script>
 </body>

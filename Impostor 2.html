@@ -48,6 +48,20 @@
   .result-message { padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; display: none; }
   .success { background: rgba(0,255,100,0.1); border: 1px solid var(--success); color: var(--success); }
   .error { background: rgba(255,0,0,0.1); border: 1px solid var(--danger); color: var(--danger); }
+  
+  /* Hint Box */
+  .hint-box { background: rgba(0,30,0,0.3); border: 1px solid rgba(0,255,130,0.3); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .hint-box h3 { margin: 0 0 8px 0; color: #88ffcc; font-size: 14px; }
+  .hint-box ul { margin: 0; padding-left: 20px; }
+  .hint-box li { margin-bottom: 5px; }
+  
+  /* Exploit Examples */
+  .exploit-examples { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .exploit-example { background: rgba(0,20,0,0.4); border: 1px dashed rgba(0,255,130,0.4); border-radius: 6px; padding: 8px 12px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+  .exploit-example:hover { background: rgba(0,40,0,0.6); border-color: var(--accent); }
+  
+  /* Redirect Warning */
+  .redirect-warning { background: rgba(255,100,0,0.2); border: 1px solid rgba(255,150,0,0.5); border-radius: 8px; padding: 10px; margin: 10px 0; text-align: center; color: #ffaa00; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -66,21 +80,40 @@
       </div>
     </div>
 
-    <div class="meta">Bypass the firewall by entering the correct exploit code. <strong>3 attempts remaining</strong></div>
+    <div class="meta">Bypass the firewall by entering the correct exploit code. <strong>5 attempts remaining</strong></div>
+    
+    <div class="redirect-warning">
+      You have 3 minutes <span id="redirectTimer">03:00</span>
+    </div>
 
     <div class="terminal" id="terminal" aria-live="polite">
 [SYSTEM] Firewall Bypass Challenge Initialized
 [INFO] Target: Corporate Mainframe Firewall v4.2
 [INFO] Vulnerability: Weak encryption in authentication protocol
 [INFO] Time limit: 3 minutes
-[INFO] Attempts allowed: 3
+[INFO] Attempts allowed: 5
 
 [PROMPT] Enter exploit code below:
     </div>
 
+    <div class="hint-box">
+      <h3>💡 HINT: Try one of these exploit commands:</h3>
+      <ul>
+        <li>Use common hacking terms like "buffer_overflow", "sql_injection", or "brute_force"</li>
+        <li>Add parameters like "--target=auth_protocol" or "--table=users"</li>
+        <li>Click on the examples below to try them</li>
+      </ul>
+    </div>
+
     <div class="code-input">
       <input type="text" id="exploitCode" placeholder="Enter exploit command..." maxlength="50">
-      <div class="hint">Hint: Try common exploit patterns like buffer overflow or SQL injection</div>
+      <div class="hint">Try: buffer_overflow --target=auth_protocol</div>
+      
+      <div class="exploit-examples">
+        <div class="exploit-example" data-exploit="buffer_overflow --target=auth_protocol">buffer_overflow --target=auth_protocol</div>
+        <div class="exploit-example" data-exploit="sql_injection --table=users">sql_injection --table=users</div>
+        <div class="exploit-example" data-exploit="brute_force --algorithm=md5">brute_force --algorithm=md5</div>
+      </div>
     </div>
 
     <div class="result-message" id="resultMessage"></div>
@@ -88,7 +121,7 @@
     <div class="controls">
       <div class="left">
         <div class="timer" id="timer">03:00</div>
-        <div class="attempts" id="attempts">Attempts: 3</div>
+        <div class="attempts" id="attempts">Attempts: 5</div>
       </div>
       <div>
         <button id="submitBtn">🚀 Execute Exploit</button>
@@ -122,6 +155,7 @@
 
   const terminal = document.getElementById('terminal');
   const timerEl = document.getElementById('timer');
+  const redirectTimerEl = document.getElementById('redirectTimer');
   const submitBtn = document.getElementById('submitBtn');
   const retryBtn = document.getElementById('retryBtn');
   const nextBtn = document.getElementById('nextBtn');
@@ -134,19 +168,39 @@
 
   // Game State
   let timeLeft = 180; // 3 minutes
-  let attemptsLeft = 3;
+  let attemptsLeft = 5;
   let gameCompleted = false;
   let progress = 0;
   let timerInterval;
+  let redirectExecuted = false;
 
   // Correct exploit codes (multiple possible solutions)
   const correctExploits = [
     "buffer_overflow --target=auth_protocol",
-    "sql_injection --table=users --column=password", 
-    "xss --payload=script_alert",
+    "sql_injection --table=users", 
     "brute_force --algorithm=md5",
-    "zero_day --exploit=CVE-2024-001"
+    "buffer_overflow",
+    "sql_injection",
+    "brute_force",
+    "xss",
+    "zero_day"
   ];
+
+  // Function to redirect to next task
+  function redirectToNextTask() {
+    if (redirectExecuted) return;
+    redirectExecuted = true;
+    
+    // Show redirect message
+    appendLine("[SYSTEM] Time limit reached. Redirecting to next task...");
+    appendLine("[SYSTEM] Transferring control to next challenge module...");
+    
+    // Redirect after a brief delay to show the message
+    setTimeout(() => {
+      // Replace this URL with your actual next task URL
+      window.location.href = 'Impostor 2.5.html';
+    }, 2000);
+  }
 
   function appendLine(text) {
     terminal.innerText += `\n${text}`;
@@ -166,12 +220,22 @@
   function startTimer() {
     clearInterval(timerInterval);
     timerEl.textContent = formatMMSS(timeLeft);
+    redirectTimerEl.textContent = formatMMSS(timeLeft);
+    
     timerInterval = setInterval(() => {
       timeLeft--;
       timerEl.textContent = formatMMSS(timeLeft);
+      redirectTimerEl.textContent = formatMMSS(timeLeft);
+      
+      // Change timer color when time is running low
+      if (timeLeft <= 30) {
+        timerEl.style.color = '#ff5555';
+        timerEl.style.animation = 'pulse 1s infinite';
+      }
+      
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        handleTimeUp();
+        redirectToNextTask();
       }
     }, 1000);
   }
@@ -180,17 +244,6 @@
     const m = Math.floor(sec/60).toString().padStart(2,'0');
     const s = (sec%60).toString().padStart(2,'0');
     return `${m}:${s}`;
-  }
-
-  function handleTimeUp() {
-    appendLine("[ERROR] Time expired! Firewall detected intrusion attempt.");
-    attemptsLeft--;
-    if (attemptsLeft <= 0) {
-      gameOver();
-    } else {
-      showResult("Time's up! " + (attemptsLeft) + " attempt(s) remaining.", "error");
-      setTimeout(resetAttempt, 3000);
-    }
   }
 
   function checkExploit() {
@@ -222,6 +275,9 @@
       submitBtn.style.display = 'none';
       nextBtn.style.display = 'inline-block';
       statusInfo.textContent = "Status: Firewall compromised - Proceed to next challenge";
+      
+      // Clear the timer since they succeeded
+      clearInterval(timerInterval);
     } else {
       // FAILED
       attemptsLeft--;
@@ -262,14 +318,11 @@
     statusInfo.textContent = "Status: Intrusion detected - System locked down";
     appendLine("[CRITICAL] Maximum failed attempts reached.");
     appendLine("[SYSTEM] Initiating emergency lockdown...");
-    clearInterval(timerInterval);
   }
 
   function retryChallenge() {
     if (attemptsLeft > 0 && !gameCompleted) {
       resetAttempt();
-      timeLeft = 180;
-      startTimer();
       appendLine("[SYSTEM] New attempt initialized...");
     }
   }
@@ -278,13 +331,22 @@
   submitBtn.addEventListener('click', checkExploit);
   retryBtn.addEventListener('click', retryChallenge);
   nextBtn.addEventListener('click', () => {
-    window.location.href = 'next-challenge.html';
+    // Replace this URL with your actual next task URL
+    window.location.href = 'next-task.html';
   });
 
   exploitCodeInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       checkExploit();
     }
+  });
+
+  // Add clickable exploit examples
+  document.querySelectorAll('.exploit-example').forEach(example => {
+    example.addEventListener('click', () => {
+      exploitCodeInput.value = example.getAttribute('data-exploit');
+      appendLine(`[HINT] Using example: ${exploitCodeInput.value}`);
+    });
   });
 
   // Initialize
