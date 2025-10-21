@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Firewall Bypass - Hacker Challenge</title>
+<style>
+  :root{ --accent:#00ff72; --danger:#ff4f5a; --bg:#010101; --success:#00ff90; }
+  html,body{height:100%;margin:0;font-family: "Roboto Mono", monospace;background: linear-gradient(180deg,#000 0%, #020202 100%); color:var(--accent); overflow-x: hidden; position: relative;}
+  
+  /* Binary Rain */
+  .binary-rain {position: fixed;top: 0;left: 0;width: 100%;height: 100%;pointer-events: none;z-index: 1;opacity: 0.3;}
+  .binary-digit {position: absolute;color: chartreuse;font-size: 14px;font-family: monospace;animation: fall linear infinite;}
+
+  @keyframes fall {
+    to { transform: translateY(100vh); }
+  }
+
+  .wrap{height:100%;display:flex;align-items:center;justify-content:center;padding:24px; position: relative; z-index: 2;}
+  .panel{ width:720px; max-width:95%; background:rgba(0,0,0,0.72); border:1px solid rgba(0,255,130,0.08); box-shadow:0 10px 40px rgba(0,0,0,0.7); border-radius:12px; padding:28px; position:relative; }
+  .title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .title h1{font-size:20px;margin:0;color:var(--accent); }
+  
+  /* Progress Bar */
+  .progress-container { flex-grow: 1; max-width: 200px; margin-left: 20px; }
+  .progress-bar { height: 12px; background-color: rgba(0,255,150,0.1); border-radius: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #00ff66, #20c997); width: 0%; transition: width 0.5s ease; border-radius: 6px; }
+  .progress-text { text-align:center; font-size:11px; margin-top:2px; color: #88ffcc; }
+  
+  .terminal{ background:linear-gradient(180deg, rgba(2,6,2,0.35), rgba(0,0,0,0.2)); border-radius:8px; padding:12px 14px; height:240px; overflow:auto; color:var(--accent); font-size:13px; line-height:1.4; white-space:pre-wrap; }
+  .controls{ display:flex; justify-content:space-between; gap:12px; margin-top:16px; align-items:center; }
+  .left{ display:flex; gap:12px; align-items:center; }
+  .timer{ font-weight:700; font-size:28px; color:var(--accent); background:rgba(0,0,0,0.25); padding:6px 12px; border-radius:8px; border:1px solid rgba(0,255,130,0.03); }
+  .attempts{ background-color:red; color:white; padding:8px 16px; border-radius:20px; min-width:120px; text-align:center; font-weight: bold; }
+  button{ padding:10px 18px; border-radius:8px; border:0; cursor:pointer; font-weight:700; color:#000; background:var(--accent); }
+  #submitBtn{ background: var(--danger); color:white; min-width:160px; }
+  #submitBtn[disabled]{ opacity:0.45; cursor:not-allowed; }
+  #nextBtn{ display:none; background: var(--success); color:#001; min-width:160px; }
+  #retryBtn{ display:none; background: #ffaa00; color:#001; min-width:160px; }
+  .hint{ font-size:13px; color:#9fffbf; }
+  .meta{ margin-top:10px; color:#88ffcc; font-size:13px; }
+  
+  /* Code Input */
+  .code-input { background: rgba(0,20,0,0.3); border: 1px solid rgba(0,255,130,0.2); border-radius: 8px; padding: 15px; margin: 15px 0; }
+  .code-input input { width: 100%; background: transparent; border: 1px solid rgba(0,255,130,0.3); border-radius: 4px; padding: 10px; color: var(--accent); font-family: monospace; font-size: 14px; }
+  .code-input input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px rgba(0,255,130,0.3); }
+  
+  .result-message { padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; display: none; }
+  .success { background: rgba(0,255,100,0.1); border: 1px solid var(--success); color: var(--success); }
+  .error { background: rgba(255,0,0,0.1); border: 1px solid var(--danger); color: var(--danger); }
+</style>
+</head>
+<body>
+<!-- Binary Rain Background -->
+<div class="binary-rain" id="binaryRain"></div>
+
+<div class="wrap">
+  <div class="panel" role="region" aria-label="Firewall Bypass Challenge">
+    <div class="title">
+      <h1>FIREWALL BYPASS CHALLENGE</h1>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">Progress: 0%</div>
+      </div>
+    </div>
+
+    <div class="meta">Bypass the firewall by entering the correct exploit code. <strong>3 attempts remaining</strong></div>
+
+    <div class="terminal" id="terminal" aria-live="polite">
+[SYSTEM] Firewall Bypass Challenge Initialized
+[INFO] Target: Corporate Mainframe Firewall v4.2
+[INFO] Vulnerability: Weak encryption in authentication protocol
+[INFO] Time limit: 3 minutes
+[INFO] Attempts allowed: 3
+
+[PROMPT] Enter exploit code below:
+    </div>
+
+    <div class="code-input">
+      <input type="text" id="exploitCode" placeholder="Enter exploit command..." maxlength="50">
+      <div class="hint">Hint: Try common exploit patterns like buffer overflow or SQL injection</div>
+    </div>
+
+    <div class="result-message" id="resultMessage"></div>
+
+    <div class="controls">
+      <div class="left">
+        <div class="timer" id="timer">03:00</div>
+        <div class="attempts" id="attempts">Attempts: 3</div>
+      </div>
+      <div>
+        <button id="submitBtn">🚀 Execute Exploit</button>
+        <button id="retryBtn">🔄 Try Again</button>
+        <button id="nextBtn">✅ Next Challenge</button>
+      </div>
+    </div>
+
+    <div class="meta" id="statusInfo">Status: Awaiting exploit code...</div>
+  </div>
+</div>
+
+<script>
+  // Create Binary Rain
+  function createBinaryRain() {
+    const container = document.getElementById('binaryRain');
+    const binaryChars = '01';
+    const count = 25;
+    
+    for (let i = 0; i < count; i++) {
+      const digit = document.createElement('div');
+      digit.className = 'binary-digit';
+      digit.textContent = binaryChars[Math.floor(Math.random() * binaryChars.length)];
+      digit.style.left = Math.random() * 100 + 'vw';
+      digit.style.animationDuration = (3 + Math.random() * 5) + 's';
+      digit.style.animationDelay = Math.random() * 2 + 's';
+      digit.style.opacity = Math.random() * 0.4 + 0.1;
+      container.appendChild(digit);
+    }
+  }
+
+  const terminal = document.getElementById('terminal');
+  const timerEl = document.getElementById('timer');
+  const submitBtn = document.getElementById('submitBtn');
+  const retryBtn = document.getElementById('retryBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const attemptsEl = document.getElementById('attempts');
+  const statusInfo = document.getElementById('statusInfo');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const resultMessage = document.getElementById('resultMessage');
+  const exploitCodeInput = document.getElementById('exploitCode');
+
+  // Game State
+  let timeLeft = 180; // 3 minutes
+  let attemptsLeft = 3;
+  let gameCompleted = false;
+  let progress = 0;
+  let timerInterval;
+
+  // Correct exploit codes (multiple possible solutions)
+  const correctExploits = [
+    "buffer_overflow --target=auth_protocol",
+    "sql_injection --table=users --column=password", 
+    "xss --payload=script_alert",
+    "brute_force --algorithm=md5",
+    "zero_day --exploit=CVE-2024-001"
+  ];
+
+  function appendLine(text) {
+    terminal.innerText += `\n${text}`;
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  function updateProgress() {
+    progressFill.style.width = `${progress}%`;
+    progressText.textContent = `Progress: ${Math.round(progress)}%`;
+  }
+
+  function updateUI() {
+    attemptsEl.textContent = `Attempts: ${attemptsLeft}`;
+    submitBtn.disabled = gameCompleted || attemptsLeft <= 0;
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerEl.textContent = formatMMSS(timeLeft);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatMMSS(timeLeft);
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        handleTimeUp();
+      }
+    }, 1000);
+  }
+
+  function formatMMSS(sec) {
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = (sec%60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
+  function handleTimeUp() {
+    appendLine("[ERROR] Time expired! Firewall detected intrusion attempt.");
+    attemptsLeft--;
+    if (attemptsLeft <= 0) {
+      gameOver();
+    } else {
+      showResult("Time's up! " + (attemptsLeft) + " attempt(s) remaining.", "error");
+      setTimeout(resetAttempt, 3000);
+    }
+  }
+
+  function checkExploit() {
+    if (gameCompleted) return;
+    
+    const userInput = exploitCodeInput.value.trim().toLowerCase();
+    
+    if (!userInput) {
+      showResult("Please enter an exploit command.", "error");
+      return;
+    }
+
+    appendLine(`[ATTEMPT] Executing: ${userInput}`);
+    
+    // Check if input matches any correct exploit
+    const isCorrect = correctExploits.some(exploit => 
+      userInput.includes(exploit.toLowerCase()) || 
+      exploit.toLowerCase().includes(userInput)
+    );
+
+    if (isCorrect) {
+      // SUCCESS
+      gameCompleted = true;
+      progress = 100;
+      updateProgress();
+      appendLine("[SUCCESS] Firewall bypassed! Access granted to mainframe.");
+      appendLine("[SYSTEM] Uploading payload... Complete!");
+      showResult("✅ Firewall Bypassed Successfully! Access granted.", "success");
+      submitBtn.style.display = 'none';
+      nextBtn.style.display = 'inline-block';
+      statusInfo.textContent = "Status: Firewall compromised - Proceed to next challenge";
+    } else {
+      // FAILED
+      attemptsLeft--;
+      appendLine("[FAILED] Exploit rejected by firewall.");
+      
+      if (attemptsLeft > 0) {
+        showResult(`Exploit failed! ${attemptsLeft} attempt(s) remaining.`, "error");
+        setTimeout(() => {
+          retryBtn.style.display = 'inline-block';
+          submitBtn.style.display = 'none';
+        }, 1000);
+      } else {
+        gameOver();
+      }
+    }
+    
+    updateUI();
+  }
+
+  function showResult(message, type) {
+    resultMessage.textContent = message;
+    resultMessage.className = `result-message ${type}`;
+    resultMessage.style.display = 'block';
+  }
+
+  function resetAttempt() {
+    exploitCodeInput.value = '';
+    resultMessage.style.display = 'none';
+    retryBtn.style.display = 'none';
+    submitBtn.style.display = 'inline-block';
+    updateUI();
+  }
+
+  function gameOver() {
+    showResult("🚫 Maximum attempts reached. Firewall lockdown activated.", "error");
+    submitBtn.disabled = true;
+    retryBtn.style.display = 'none';
+    statusInfo.textContent = "Status: Intrusion detected - System locked down";
+    appendLine("[CRITICAL] Maximum failed attempts reached.");
+    appendLine("[SYSTEM] Initiating emergency lockdown...");
+    clearInterval(timerInterval);
+  }
+
+  function retryChallenge() {
+    if (attemptsLeft > 0 && !gameCompleted) {
+      resetAttempt();
+      timeLeft = 180;
+      startTimer();
+      appendLine("[SYSTEM] New attempt initialized...");
+    }
+  }
+
+  // Event Listeners
+  submitBtn.addEventListener('click', checkExploit);
+  retryBtn.addEventListener('click', retryChallenge);
+  nextBtn.addEventListener('click', () => {
+    window.location.href = 'next-challenge.html';
+  });
+
+  exploitCodeInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      checkExploit();
+    }
+  });
+
+  // Initialize
+  createBinaryRain();
+  updateUI();
+  startTimer();
+
+  // Add some random progress for visual effect
+  setInterval(() => {
+    if (!gameCompleted && progress < 30) {
+      progress += Math.random() * 2;
+      if (progress > 30) progress = 30;
+      updateProgress();
+    }
+  }, 1000);
+</script>
+</body>
+</html>
