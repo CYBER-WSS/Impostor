@@ -188,13 +188,13 @@
       <div class="line" aria-hidden="true"></div>
 
       <div class="term" aria-hidden="true">
-        Status: <strong style="color:var(--accent)">Online</strong> • Sabotage Task 3: <code style="color:var(--accent-2)">#42</code><br>
+        Status: <strong style="color:var(--accent)">Online</strong> • Sabotage Task 1: <code style="color:var(--accent-2)"></code><br>
         Role: <span style="color:var(--muted)">Impostor</span> — secure link below
       </div>
 
-      <a id="hackerBtn" class="hacker-btn" href="Impostor 3.html" role="button" aria-label="Enter node">
+      <a id="hackerBtn" class="hacker-btn" href="Impostor1.html" role="button" aria-label="Enter node">
         <span class="led" aria-hidden="true"></span>
-        <span class="label">TASK 3</span>
+        <span class="label">TASK 1</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="opacity:.95">
           <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -257,23 +257,6 @@ for (let i = 0; i < digitCount; i++) {
   span.textContent = Math.random() > 0.5 ? '0' : '1';
   document.body.appendChild(span);
 }
-const users = {
-      "Impostor": { password: "Impostor@321", redirect: "Impostor 0.5.html" },
-      "Crewmate":   { password: "Crewmate@123", redirect: "Challenge 0.5.html" },
-    };
-
-    document.getElementById('loginForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('password').value;
-
-      const msg = document.getElementById('msg');
-      if(!users[u] || users[u].password !== p) {
-        msg.textContent = 'Invalid username or password';
-        return;
-      }
-      window.location.href = 'Impostor 3.html';
-    });
 </script>
 </body>
 </html>

@@ -272,7 +272,7 @@
     <h3>How to Play:</h3>
     <ul>
       <li>Each user card shows a username and a clue about their password</li>
-      <li>Clues can be: <strong>Anagrams</strong> (scrambled letters), <strong>Length</strong> (number of characters), or <strong>Reverse</strong> (password spelled backwards)</li>
+      <li>Clues can be: <strong>Anagrams</strong> (scrambled letters) or <strong>Reverse</strong> (password spelled backwards)</li>
       <li>Enter the correct password for each user in the input field</li>
       <li>You need to solve at least 70% (9 out of 12) to proceed to the next stage</li>
       <li>You have <strong>3 minutes</strong> to complete the mission</li>
@@ -282,7 +282,6 @@
     <h3>Example:</h3>
     <ul>
       <li>If the clue is "Anagram: traxmii", the password might be "matrix"</li>
-      <li>If the clue is "Length: 5 characters", the password has exactly 5 letters</li>
       <li>If the clue is "Reverse: ylpmis", the password is "simple" (spelled backwards)</li>
     </ul>
   </div>
@@ -354,7 +353,14 @@
   
   const adjectives = ["cyan", "sly", "quiet", "vivid", "crisp", "neon", "quick", "sharp"];
   const nouns = ["fox", "circuit", "brush", "byte", "ember", "gizmo", "pixel", "node"];
-  const passwords = ["alpha", "orbit7", "matrix", "pulse", "sunny", "shadow", "neon5", "cipher", "binary", "signal", "vector", "quantum"];
+  
+  // More complex and difficult passwords
+  const passwords = [
+    "cryptography", "quantumleap", "firewall", "encryption", 
+    "algorithm", "blockchain", "cybersecurity", "authentication",
+    "biometrics", "malware", "phishing", "vulnerability"
+  ];
+  
   const users = [];
 
   function makeUsername() {
@@ -363,7 +369,7 @@
   }
   
   function makeClue(pw) {
-    const types = ["anagram", "length", "reverse"];
+    const types = ["anagram", "reverse"];
     const type = types[Math.floor(Math.random() * types.length)];
     
     if (type === "anagram") {
@@ -374,10 +380,6 @@
         [anagram[i], anagram[j]] = [anagram[j], anagram[i]];
       }
       return {text: `Anagram: ${anagram.join('')}`, type: "anagram"};
-    }
-    
-    if (type === "length") {
-      return {text: `Length: ${pw.length} characters`, type: "length"};
     }
     
     if (type === "reverse") {
@@ -436,7 +438,7 @@
       const status = card.querySelector(`#st${i}`);
       
       input.addEventListener('input', () => {
-        if (input.value.trim() === usr.pw) {
+        if (input.value.trim().toLowerCase() === usr.pw.toLowerCase()) {
           usr.solved = true;
           status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
           updateProgress();
@@ -458,7 +460,7 @@
       const input = document.getElementById(`pw${i}`);
       const status = document.getElementById(`st${i}`);
       
-      if (input.value.trim() === usr.pw) {
+      if (input.value.trim().toLowerCase() === usr.pw.toLowerCase()) {
         usr.solved = true;
         status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
         correctCount++;
@@ -474,7 +476,7 @@
       clearInterval(timerInterval);
       alert(`ACCESS GRANTED! You decrypted ${correctCount}/12 passwords. Proceeding to next stage.`);
       // In a real implementation, this would redirect to the next stage
-       window.location.href = 'Impostor 1.5.html';
+      // window.location.href = 'Impostor 1.5.html';
     } else {
       alert(`ACCESS DENIED! You decrypted ${correctCount}/12 passwords. At least 70% (9/12) needed to proceed.`);
     }
@@ -485,4 +487,3 @@
 </script>
 </body>
 </html>
-

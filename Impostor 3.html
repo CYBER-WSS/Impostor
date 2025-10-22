@@ -94,18 +94,10 @@ h1 i {margin-right:12px;font-size:28px;}
 .protocol-udp { border-left: 3px solid #ffaa00; }
 .protocol-icmp { border-left: 3px solid #ff4444; }
 .protocol-http { border-left: 3px solid #4488ff; }
-
-
-.suspicious-indicator {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 8px;
-    height: 8px;
-    background: red;
-    border-radius: 50%;
-    animation: blink 1s infinite;
-} 
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
 
 /* Hint box */
 .hint-box {
@@ -466,6 +458,4 @@ submitBtn.addEventListener('click', submitAnalysis);
 resetBtn.addEventListener('click', resetSelection);
 </script>
 </body>
-
 </html>
-
