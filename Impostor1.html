@@ -166,60 +166,6 @@
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
   }
   
-  .nav-bar { 
-    width:100%; 
-    text-align:center; 
-    margin-bottom:15px; 
-  }
-  
-  .nav-bar button { 
-    padding: 10px 20px; 
-    font-size:16px; 
-    background: var(--primary-color); 
-    color:black; 
-    border:none; 
-    border-radius:6px; 
-    cursor:pointer; 
-    font-weight:bold; 
-    font-family: 'Courier New', monospace;
-    transition: 0.2s;
-  }
-  
-  .nav-bar button:hover { 
-    background: var(--primary-dark);
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
-  }
-  
-  #iframeOverlay { 
-    display:none; 
-    position:fixed; 
-    top:0; 
-    left:0; 
-    width:100%; 
-    height:100%; 
-    background: rgba(0,0,0,0.95); 
-    z-index:999; 
-  }
-  
-  #iframeOverlay iframe { 
-    width:100%; 
-    height:100%; 
-    border:none; 
-  }
-  
-  #iframeOverlay button { 
-    position:absolute; 
-    top:10px; 
-    right:10px; 
-    background:red; 
-    color:white; 
-    font-size:16px; 
-    border:none; 
-    padding:8px 12px; 
-    cursor:pointer; 
-    border-radius:6px; 
-  }
-  
   .progress-container {
     width: 100%;
     background-color: rgba(0, 30, 0, 0.3);
@@ -274,7 +220,7 @@
       <li>Each user card shows a username and a clue about their password</li>
       <li>Clues can be: <strong>Anagrams</strong> (scrambled letters) or <strong>Reverse</strong> (password spelled backwards)</li>
       <li>Enter the correct password for each user in the input field</li>
-      <li>You need to solve at least 70% (9 out of 12) to proceed to the next stage</li>
+      <li>You need to solve <strong>100% (12 out of 12)</strong> to proceed to the next stage</li>
       <li>You have <strong>3 minutes</strong> to complete the mission</li>
       <li><strong>WARNING:</strong> After 3 minutes, you will be automatically redirected regardless of your progress</li>
     </ul>
@@ -293,197 +239,13 @@
   </div>
   <div class="progress-text" id="progressText">Progress: 0/12 (0%)</div>
   
-  <div class="nav-bar">
-    <button id="openSiteBtn">Good Luck</button>
-  </div>
-  
   <div class="users-grid" id="usersGrid"></div>
   
   <button id="submitBtn" class="submit-btn">DECRYPT ALL PASSWORDS</button>
 </div>
 
-<div id="iframeOverlay">
-  <button id="closeIframe">Close Database</button>
-  <iframe src=""></iframe>
-</div>
-
 <script>
-  // --- Timer 3 min ---
-  const timerEl = document.getElementById('timer');
-  let timeLeft = 3 * 60;
-  
-  // Function to redirect after timeout
-  function redirectAfterTimeout() {
-    // Change this URL to your desired destination
-    window.location.href = 'Impostor 1.5.html';
-  }
-  
-  const timerInterval = setInterval(() => {
-    timeLeft--;
-    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-    timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    
-    // Change color when time is running out
-    if (timeLeft < 60) {
-      timerEl.style.color = '#ff5555';
-      timerEl.style.animation = 'pulse 1s infinite';
-    }
-    
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      alert('Time is up! Redirecting to next stage...');
-      redirectAfterTimeout();
-    }
-  }, 1000);
-
-  // --- External site iframe ---
-  const iframeOverlay = document.getElementById('iframeOverlay');
-  const iframe = iframeOverlay.querySelector('iframe');
-  document.getElementById('openSiteBtn').onclick = () => {
-    // In a real implementation, this would open an external site
-    // For demo purposes, we'll just show a message
-    alert('External database access would open here in a real implementation');
-  };
-  document.getElementById('closeIframe').onclick = () => { iframeOverlay.style.display = 'none'; };
-
-  // --- Puzzle setup ---
-  const usersGrid = document.getElementById('usersGrid');
-  const progressBar = document.getElementById('progressBar');
-  const progressText = document.getElementById('progressText');
-  
-  const adjectives = ["cyan", "sly", "quiet", "vivid", "crisp", "neon", "quick", "sharp"];
-  const nouns = ["fox", "circuit", "brush", "byte", "ember", "gizmo", "pixel", "node"];
-  
-  // More complex and difficult passwords
-  const passwords = [
-    "cryptography", "quantumleap", "firewall", "encryption", 
-    "algorithm", "blockchain", "cybersecurity", "authentication",
-    "biometrics", "malware", "phishing", "vulnerability"
-  ];
-  
-  const users = [];
-
-  function makeUsername() {
-    return adjectives[Math.floor(Math.random() * adjectives.length)] + "_" + 
-           nouns[Math.floor(Math.random() * nouns.length)];
-  }
-  
-  function makeClue(pw) {
-    const types = ["anagram", "reverse"];
-    const type = types[Math.floor(Math.random() * types.length)];
-    
-    if (type === "anagram") {
-      // Create a proper anagram by shuffling the letters
-      let anagram = pw.split('');
-      for (let i = anagram.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [anagram[i], anagram[j]] = [anagram[j], anagram[i]];
-      }
-      return {text: `Anagram: ${anagram.join('')}`, type: "anagram"};
-    }
-    
-    if (type === "reverse") {
-      return {text: `Reverse: ${pw.split('').reverse().join('')}`, type: "reverse"};
-    }
-  }
-
-  // Create 12 users with unique passwords
-  const usedPasswords = new Set();
-  while (users.length < 12) {
-    const u = makeUsername();
-    const availablePasswords = passwords.filter(p => !usedPasswords.has(p));
-    
-    if (availablePasswords.length === 0) break;
-    
-    const pw = availablePasswords[Math.floor(Math.random() * availablePasswords.length)];
-    usedPasswords.add(pw);
-    
-    const clue = makeClue(pw);
-    users.push({u, pw, clue, solved: false});
-  }
-
-  function updateProgress() {
-    const solvedCount = users.filter(u => u.solved).length;
-    const percentage = Math.round((solvedCount / users.length) * 100);
-    
-    progressBar.style.width = `${percentage}%`;
-    progressText.textContent = `Progress: ${solvedCount}/${users.length} (${percentage}%)`;
-    
-    // Change progress bar color based on completion
-    if (percentage >= 70) {
-      progressBar.style.backgroundColor = '#00aaff';
-    } else if (percentage >= 40) {
-      progressBar.style.backgroundColor = '#ffaa00';
-    } else {
-      progressBar.style.backgroundColor = '#ff5555';
-    }
-  }
-
-  function renderGrid() {
-    usersGrid.innerHTML = '';
-    users.forEach((usr, i) => {
-      const card = document.createElement('div');
-      card.className = 'user-card';
-      card.innerHTML = `
-        <div class="username">${usr.u}</div>
-        <div class="clue">${usr.clue.text}</div>
-        <div class="input-row">
-          <input id="pw${i}" placeholder="Enter password..." value="${usr.solved ? usr.pw : ''}"/>
-          <div class="status" id="st${i}">${usr.solved ? '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>' : '—'}</div>
-        </div>
-      `;
-      
-      // Add event listener for real-time validation
-      const input = card.querySelector(`#pw${i}`);
-      const status = card.querySelector(`#st${i}`);
-      
-      input.addEventListener('input', () => {
-        if (input.value.trim().toLowerCase() === usr.pw.toLowerCase()) {
-          usr.solved = true;
-          status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
-          updateProgress();
-        } else {
-          usr.solved = false;
-          status.textContent = '—';
-          updateProgress();
-        }
-      });
-      
-      usersGrid.appendChild(card);
-    });
-    updateProgress();
-  }
-
-  function checkAll() {
-    let correctCount = 0;
-    users.forEach((usr, i) => {
-      const input = document.getElementById(`pw${i}`);
-      const status = document.getElementById(`st${i}`);
-      
-      if (input.value.trim().toLowerCase() === usr.pw.toLowerCase()) {
-        usr.solved = true;
-        status.innerHTML = '<span style="color:#8ff;font-weight:bold;">✓ Correct</span>';
-        correctCount++;
-      } else {
-        usr.solved = false;
-        status.textContent = '✗ Incorrect';
-      }
-    });
-    
-    updateProgress();
-    
-    if (correctCount >= Math.ceil(users.length * 0.7)) {
-      clearInterval(timerInterval);
-      alert(`ACCESS GRANTED! You decrypted ${correctCount}/12 passwords. Proceeding to next stage.`);
-      // In a real implementation, this would redirect to the next stage
-      // window.location.href = 'Impostor 1.5.html';
-    } else {
-      alert(`ACCESS DENIED! You decrypted ${correctCount}/12 passwords. At least 70% (9/12) needed to proceed.`);
-    }
-  }
-
-  document.getElementById('submitBtn').addEventListener('click', checkAll);
-  renderGrid();
+ const _0x2d1964=_0x15a5;(function(_0x579148,_0x3abde4){const _0x66f06c=_0x15a5,_0x7842be=_0x579148();while(!![]){try{const _0x51df5d=-parseInt(_0x66f06c(0x14a))/0x1+-parseInt(_0x66f06c(0x11a))/0x2*(parseInt(_0x66f06c(0x119))/0x3)+parseInt(_0x66f06c(0x117))/0x4*(-parseInt(_0x66f06c(0x151))/0x5)+parseInt(_0x66f06c(0x142))/0x6+parseInt(_0x66f06c(0x110))/0x7+-parseInt(_0x66f06c(0x120))/0x8+parseInt(_0x66f06c(0x128))/0x9;if(_0x51df5d===_0x3abde4)break;else _0x7842be['push'](_0x7842be['shift']());}catch(_0x14429d){_0x7842be['push'](_0x7842be['shift']());}}}(_0x38cf,0x9dc56));const timerEl=document[_0x2d1964(0x135)](_0x2d1964(0x114));let timeLeft=0x3*0x3c,timerInterval;function redirectAfterTimeout(){const _0x405bba=_0x2d1964;window[_0x405bba(0x10c)][_0x405bba(0x157)]='Impostor\x201.5.html';}function startTimer(){timerInterval=setInterval(()=>{const _0x1b158f=_0x15a5;timeLeft--;const _0x506e31=Math['floor'](timeLeft/0x3c),_0x40a31c=timeLeft%0x3c;timerEl['textContent']=_0x506e31[_0x1b158f(0x111)]()[_0x1b158f(0x126)](0x2,'0')+':'+_0x40a31c[_0x1b158f(0x111)]()['padStart'](0x2,'0'),timeLeft<0x3c&&(timerEl[_0x1b158f(0x122)][_0x1b158f(0x108)]='#ff5555',timerEl[_0x1b158f(0x122)][_0x1b158f(0x149)]=_0x1b158f(0x12a)),timeLeft<=0x0&&(clearInterval(timerInterval),alert('Time\x20is\x20up!\x20Redirecting\x20to\x20next\x20stage...'),redirectAfterTimeout());},0x3e8);}const usersGrid=document[_0x2d1964(0x135)](_0x2d1964(0x143)),progressBar=document['getElementById'](_0x2d1964(0x141)),progressText=document[_0x2d1964(0x135)](_0x2d1964(0x13e)),adjectives=[_0x2d1964(0x12e),'cryptic','neural',_0x2d1964(0x133),_0x2d1964(0x12e),_0x2d1964(0x132),_0x2d1964(0x146),_0x2d1964(0x156)],nouns=[_0x2d1964(0x12f),'firewall',_0x2d1964(0x11d),_0x2d1964(0x138),_0x2d1964(0x136),_0x2d1964(0x127),_0x2d1964(0x124),_0x2d1964(0x12d)],passwords=['cryptography',_0x2d1964(0x115),_0x2d1964(0x136),_0x2d1964(0x138),'algorithm','blockchain',_0x2d1964(0x14d),_0x2d1964(0x154),_0x2d1964(0x127),_0x2d1964(0x124),'phishing',_0x2d1964(0x13b)],users=[];function makeUsername(){const _0x546889=_0x2d1964;return adjectives[Math[_0x546889(0x11f)](Math['random']()*adjectives['length'])]+'_'+nouns[Math[_0x546889(0x11f)](Math['random']()*nouns['length'])];}function makeClue(_0x44f83f){const _0x6f5d65=_0x2d1964,_0x53f0df=[_0x6f5d65(0x131),'reverse'],_0x3a16b8=_0x53f0df[Math[_0x6f5d65(0x11f)](Math[_0x6f5d65(0x10e)]()*_0x53f0df[_0x6f5d65(0x113)])];if(_0x3a16b8===_0x6f5d65(0x131)){let _0xc8cf0a=_0x44f83f[_0x6f5d65(0x123)]('');for(let _0x5ec806=_0xc8cf0a[_0x6f5d65(0x113)]-0x1;_0x5ec806>0x0;_0x5ec806--){const _0x14ee93=Math[_0x6f5d65(0x11f)](Math['random']()*(_0x5ec806+0x1));[_0xc8cf0a[_0x5ec806],_0xc8cf0a[_0x14ee93]]=[_0xc8cf0a[_0x14ee93],_0xc8cf0a[_0x5ec806]];}return{'text':_0x6f5d65(0x140)+_0xc8cf0a[_0x6f5d65(0x153)](''),'type':'anagram'};}if(_0x3a16b8===_0x6f5d65(0x10d))return{'text':_0x6f5d65(0x11b)+_0x44f83f[_0x6f5d65(0x123)]('')['reverse']()[_0x6f5d65(0x153)](''),'type':'reverse'};}const usedPasswords=new Set();function _0x15a5(_0x1e9332,_0x4c1016){const _0x38cf59=_0x38cf();return _0x15a5=function(_0x15a56a,_0x3d17ce){_0x15a56a=_0x15a56a-0x107;let _0x395b35=_0x38cf59[_0x15a56a];return _0x395b35;},_0x15a5(_0x1e9332,_0x4c1016);}while(users[_0x2d1964(0x113)]<0xc){const u=makeUsername(),availablePasswords=passwords['filter'](_0x45a9b9=>!usedPasswords[_0x2d1964(0x14e)](_0x45a9b9));if(availablePasswords[_0x2d1964(0x113)]===0x0)break;const pw=availablePasswords[Math[_0x2d1964(0x11f)](Math['random']()*availablePasswords['length'])];usedPasswords[_0x2d1964(0x121)](pw);const clue=makeClue(pw);users[_0x2d1964(0x13f)]({'u':u,'pw':pw,'clue':clue,'solved':![]});}function updateProgress(){const _0x305f40=_0x2d1964,_0x4c82dc=users[_0x305f40(0x155)](_0x3d2626=>_0x3d2626[_0x305f40(0x12b)])['length'],_0x31968b=Math[_0x305f40(0x145)](_0x4c82dc/users[_0x305f40(0x113)]*0x64);progressBar[_0x305f40(0x122)]['width']=_0x31968b+'%',progressText['textContent']='Progress:\x20'+_0x4c82dc+'/'+users['length']+'\x20('+_0x31968b+'%)';if(_0x31968b>=0x64)progressBar[_0x305f40(0x122)]['backgroundColor']=_0x305f40(0x125);else _0x31968b>=0x46?progressBar[_0x305f40(0x122)][_0x305f40(0x10b)]=_0x305f40(0x147):progressBar[_0x305f40(0x122)]['backgroundColor']='#ff5555';}function _0x38cf(){const _0x317386=['binary','addEventListener','getElementById','firewall','<span\x20style=\x22color:#8ff;font-weight:bold;\x22>✓\x20Correct</span>','encryption','✗\x20Incorrect','className','vulnerability','\x22\x20placeholder=\x22Enter\x20password...\x22\x20value=\x22','clue','progressText','push','Anagram:\x20','progressBar','5024142LmtWAZ','usersGrid','createElement','round','digital','#ffaa00','text','animation','1265310oFcMzY','\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22username\x22>','trim','cybersecurity','has','toLowerCase','input','10nRaluX','/12\x20passwords.\x20Proceeding\x20to\x20next\x20stage.','join','authentication','filter','virtual','href','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22input-row\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20id=\x22pw','color','innerHTML','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22clue\x22>','backgroundColor','location','reverse','random','textContent','8835519rYuLbr','toString','#st','length','timer','quantumleap','appendChild','1365252sZzZdt','querySelector','5121bLXYds','878vOCyPf','Reverse:\x20','forEach','protocol','\x22/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22status\x22\x20id=\x22st','floor','7041304TOjhlG','add','style','split','malware','#00aaff','padStart','biometrics','19117152tPuLwe','value','pulse\x201s\x20infinite','solved','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20','blockchain','quantum','algorithm','#pw','anagram','encrypted'];_0x38cf=function(){return _0x317386;};return _0x38cf();}function renderGrid(){const _0x3e9f8d=_0x2d1964;usersGrid[_0x3e9f8d(0x109)]='',users[_0x3e9f8d(0x11c)]((_0x335fb2,_0x548023)=>{const _0x3755b4=_0x3e9f8d,_0x2e11aa=document[_0x3755b4(0x144)]('div');_0x2e11aa[_0x3755b4(0x13a)]='user-card',_0x2e11aa['innerHTML']=_0x3755b4(0x14b)+_0x335fb2['u']+_0x3755b4(0x10a)+_0x335fb2[_0x3755b4(0x13d)][_0x3755b4(0x148)]+_0x3755b4(0x107)+_0x548023+_0x3755b4(0x13c)+(_0x335fb2[_0x3755b4(0x12b)]?_0x335fb2['pw']:'')+_0x3755b4(0x11e)+_0x548023+'\x22>'+(_0x335fb2[_0x3755b4(0x12b)]?_0x3755b4(0x137):'—')+_0x3755b4(0x12c);const _0x35e032=_0x2e11aa[_0x3755b4(0x118)](_0x3755b4(0x130)+_0x548023),_0x1f297f=_0x2e11aa[_0x3755b4(0x118)](_0x3755b4(0x112)+_0x548023);_0x35e032['addEventListener'](_0x3755b4(0x150),()=>{const _0x1a1782=_0x3755b4;_0x35e032[_0x1a1782(0x129)]['trim']()[_0x1a1782(0x14f)]()===_0x335fb2['pw'][_0x1a1782(0x14f)]()?(_0x335fb2[_0x1a1782(0x12b)]=!![],_0x1f297f[_0x1a1782(0x109)]=_0x1a1782(0x137),updateProgress()):(_0x335fb2[_0x1a1782(0x12b)]=![],_0x1f297f[_0x1a1782(0x10f)]='—',updateProgress());}),usersGrid[_0x3755b4(0x116)](_0x2e11aa);}),updateProgress();}function checkAll(){const _0x8db30f=_0x2d1964;let _0x2a79e7=0x0;users[_0x8db30f(0x11c)]((_0x3c6e4c,_0x4403d1)=>{const _0x3231ee=_0x8db30f,_0x2cbb0e=document[_0x3231ee(0x135)]('pw'+_0x4403d1),_0x1ac1f1=document[_0x3231ee(0x135)]('st'+_0x4403d1);_0x2cbb0e[_0x3231ee(0x129)][_0x3231ee(0x14c)]()['toLowerCase']()===_0x3c6e4c['pw'][_0x3231ee(0x14f)]()?(_0x3c6e4c[_0x3231ee(0x12b)]=!![],_0x1ac1f1[_0x3231ee(0x109)]=_0x3231ee(0x137),_0x2a79e7++):(_0x3c6e4c[_0x3231ee(0x12b)]=![],_0x1ac1f1[_0x3231ee(0x10f)]=_0x3231ee(0x139));}),updateProgress(),_0x2a79e7===users[_0x8db30f(0x113)]?(clearInterval(timerInterval),alert('ACCESS\x20GRANTED!\x20You\x20decrypted\x20all\x20'+_0x2a79e7+_0x8db30f(0x152)),window['location'][_0x8db30f(0x157)]='Impostor\x201.5.html'):alert('ACCESS\x20DENIED!\x20You\x20decrypted\x20'+_0x2a79e7+'/12\x20passwords.\x20You\x20need\x20100%\x20(12/12)\x20to\x20proceed.');}document['getElementById']('submitBtn')[_0x2d1964(0x134)]('click',checkAll),renderGrid(),startTimer();
 </script>
 </body>
 </html>
